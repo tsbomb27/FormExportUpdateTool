@@ -13,7 +13,6 @@ namespace FormExportFixerTool
         private readonly string _inputFolderPath;
         private readonly string _outputFolderPath;
         private readonly string _xrefFilePath;
-        private int numberOfTicks;
         internal string tempDirectory;
 
 
@@ -107,8 +106,7 @@ namespace FormExportFixerTool
         /// <param name="appendPdfFilePaths"></param>
         internal void ParsePdfsAndAppend(string[] xrefFilePaths, string[] appendPdfFilePaths)
         {
-            numberOfTicks = CountFilesToUpdate(appendPdfFilePaths);
-            using (var progressBar = new ProgressBar(numberOfTicks, "Action 2 of 2 - Update and Append Pdf Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
+            using (var progressBar = new ProgressBar(appendPdfFilePaths.Length, "Action 2 of 2 - Update and Append Pdf Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
 
                 for (int i = 0; i < appendPdfFilePaths.Length; i++)
                 {
@@ -173,7 +171,7 @@ namespace FormExportFixerTool
 
                             File.Delete(sourcePdfPath);
                             File.Move(outputPdfPath, sourcePdfPath);
-                            WriteToLogFile(updatedFileName, outputPdfPath, "Complete");
+                            WriteToLogFile(updatedFileName, sourcePdfPath, "Complete");
                         }
                     }
                 }

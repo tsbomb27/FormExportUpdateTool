@@ -66,7 +66,7 @@ namespace FormExportFixerTool
                                 {
                                     sw.WriteLine(line);
                                     lineCounter++;
-                                    progressBar.Tick();                                    
+                                    progressBar.Tick();
                                 }
                             }
                         }
