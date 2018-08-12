@@ -57,7 +57,7 @@ namespace FormExportFixerTool
 
             manifestFile.CombineManifestFiles(outputFolderPath, manifestFilePaths);
 
-            Console.WriteLine("Completed - Combine manifest files\n");
+            Console.WriteLine("Complete - Combine manifest files\n");
 
             // Build the xref file paths & then append the cooresponding pages to the end
             Console.WriteLine("Action - Process Pdf files...\n");
@@ -74,7 +74,7 @@ namespace FormExportFixerTool
             Directory.Delete(pdf.tempDirectory);
 
             //Message processing is done and close the console window
-            Console.WriteLine("Processing Complete! \nCheck FormExportLog.csv for details or issues encountered...");
+            Console.WriteLine("Processing Complete! \nCheck FormExportLog.csv for details or if any issues were encountered during processing...");
 
             Console.WriteLine("\nPress any key to close this console window...");
             Console.ReadKey();
