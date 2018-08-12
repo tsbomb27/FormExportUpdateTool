@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using ShellProgressBar;
 
 namespace FormExportFixerTool
 {
@@ -36,39 +38,39 @@ namespace FormExportFixerTool
         /// Combine manifest files into single file.
         /// </summary>
         /// <param name="writeOutputPath"></param>
-        /// <param name="files"></param>
-        internal void CombineManifestFiles(string writeOutputPath, string[] files)
+        /// <param name="manifestFiles"></param>
+        internal void CombineManifestFiles(string writeOutputPath, string[] manifestFiles)
         {
             string filePath = Path.Combine(writeOutputPath, manifestFileName);
             int fileNumber = 0;
             int lineCounter = 0;
 
-            if (!File.Exists(filePath))
-            {
-                using (StreamWriter sw = File.CreateText(filePath))
+            using (var progressBar = new ProgressBar(GetTotalLineCount(manifestFiles), "Action 1 of 2 - Combine Manifest Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
 
-                    foreach (var filename in files)
-                    {
-                        fileNumber++;
-                        lineCounter = 0;
-
-                        using (StreamReader sr = File.OpenText(filename))
+                if (!File.Exists(filePath))
+                {
+                    using (StreamWriter sw = File.CreateText(filePath))
+                        foreach (string filename in manifestFiles)
                         {
-                            // Skip header on first line
-                            if (fileNumber > 1 && lineCounter == 0)
+                            fileNumber++;
+                            lineCounter = 0;
+                            using (StreamReader sr = File.OpenText(filename))
                             {
-                                sr.ReadLine();
-                            }
-
-                            string line;
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                sw.WriteLine(line);
-                                lineCounter++;
+                                // Skip first line header after first file
+                                if (fileNumber > 1 && lineCounter == 0)
+                                {
+                                    sr.ReadLine();
+                                }
+                                string line;
+                                while ((line = sr.ReadLine()) != null)
+                                {
+                                    sw.WriteLine(line);
+                                    lineCounter++;
+                                    progressBar.Tick();                                    
+                                }
                             }
                         }
-                    }
-            }
+                }
         }
 
         /// <summary>
@@ -87,19 +89,19 @@ namespace FormExportFixerTool
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="skipHeaderLine"></param>
-        /// <returns>lineCount</returns>
-        private int GetTotalLineCount(string filePath, bool skipHeaderLine)
+        /// <returns>lineCount without header lines. Except counting header line of the first file
+        private int GetTotalLineCount(string[] filePaths)
         {
-            int lineCount;
-
-            if (skipHeaderLine == true)
+            int lineCount = 0;
+            string filePath;
+            List<int> totalLines = new List<int>();
+            for (int i = 0; i < filePaths.Length; i++)
             {
-                return lineCount = File.ReadLines(filePath).Count() - 1;
+                filePath = filePaths[i];
+                lineCount = File.ReadLines(filePath).Count() - 1;
+                totalLines.Add(lineCount);
             }
-            else
-            {
-                return lineCount = File.ReadLines(filePath).Count();
-            }
+            return totalLines.Sum() + 1;
         }
 
     }
