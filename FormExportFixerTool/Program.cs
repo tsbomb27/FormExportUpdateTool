@@ -39,7 +39,7 @@ namespace FormExportFixerTool
                 }
                 else
                 {
-                    Console.WriteLine("\nYou have entered an invalid folder\file path. Please try again. \n");
+                    Console.WriteLine("\nYou have entered an invalid folder andor file path. Please try again. \n");
                     inputFolderPath = null;
                     outputFolderPath = null;
                     xrefFilePath = null;
@@ -50,18 +50,17 @@ namespace FormExportFixerTool
             Console.WriteLine("Processing Started....");
 
             // Combine manifest files into one
-            Console.WriteLine("Gathering & combining manifest files....");
+            Console.WriteLine("Action - Gather & combine manifest files....\n");
             ManifestFile manifestFile = new ManifestFile(inputFolderPath, outputFolderPath);
 
             string[] manifestFilePaths = manifestFile.GetManifestFiles(inputFolderPath);
 
             manifestFile.CombineManifestFiles(outputFolderPath, manifestFilePaths);
 
-            Console.WriteLine("Complete - Combined manifest files\n");
-
+            Console.WriteLine("Completed - Combine manifest files\n");
 
             // Build the xref file paths & then append the cooresponding pages to the end
-            Console.WriteLine("Action - Processing Pdf files...");
+            Console.WriteLine("Action - Process Pdf files...\n");
             PdfFile pdf = new PdfFile(inputFolderPath, outputFolderPath, xrefFilePath);
 
             string[] xrefPaths = pdf.BuildXrefFilePath(xrefFilePath);
@@ -69,13 +68,13 @@ namespace FormExportFixerTool
 
             pdf.ParsePdfsAndAppend(xrefPaths, appendPaths);
 
-            Console.WriteLine("Complete - Pdf files updated...");
+            Console.WriteLine("Complete - Updated Pdf files...");
 
-            // Remove temp directory
+            // Remove temp directory once processing is complete
             Directory.Delete(pdf.tempDirectory);
 
             //Message processing is done and close the console window
-            Console.WriteLine("Processing Completed Successfully...");
+            Console.WriteLine("Processing Complete! \nCheck FormExportLog.csv for details or issues encountered...");
 
             Console.WriteLine("\nPress any key to close this console window...");
             Console.ReadKey();

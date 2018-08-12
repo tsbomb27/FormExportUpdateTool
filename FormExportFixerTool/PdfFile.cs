@@ -10,10 +10,12 @@ namespace FormExportFixerTool
     internal class PdfFile
     {
         // Class variables
-        private string _inputFolderPath;
-        private string _outputFolderPath;
-        private string _xrefFilePath;
+        private readonly string _inputFolderPath;
+        private readonly string _outputFolderPath;
+        private readonly string _xrefFilePath;
+        private int numberOfTicks;
         internal string tempDirectory;
+
 
         // Constructors
         public PdfFile()
@@ -28,7 +30,7 @@ namespace FormExportFixerTool
         }
 
         /// <summary>
-        /// Method - Build the file paths for affected forms that need Esignature pdf appended
+        /// Method - Build the file paths for affected forms that need a pdf appended
         /// </summary>
         /// <returns></returns>
         internal string[] BuildXrefFilePath(string xrefFilePath)
@@ -49,7 +51,7 @@ namespace FormExportFixerTool
             {
                 string[] fields = xrefParser.ReadFields();
 
-                // Skip the header fields in first line
+                // Skip the first line header
                 if (firstLine)
                 {
                     firstLine = false;
@@ -67,7 +69,7 @@ namespace FormExportFixerTool
         }
 
         /// <summary>
-        /// Method - Store off paths for corresponding Esignature pdfs to be appended
+        /// Method - Store off paths for corresponding pdfs to be appended
         /// </summary>
         /// <param name="xrefFilePath"></param>
         /// <returns></returns>
@@ -86,7 +88,7 @@ namespace FormExportFixerTool
             {
                 string[] fields = xrefParser.ReadFields();
 
-                // Skip the header fields on first line
+                // Skip first line header
                 if (firstLine)
                 {
                     firstLine = false;
@@ -99,22 +101,26 @@ namespace FormExportFixerTool
         }
 
         /// <summary>
-        /// Method - Call methods to parse out xref paths & Esignature paths, then call to append the pdfs together
+        /// Method - Call methods to parse out xref paths & append pdf paths, then call to append pdf method
         /// </summary>
         /// <param name="xrefFilePaths"></param>
         /// <param name="appendPdfFilePaths"></param>
         internal void ParsePdfsAndAppend(string[] xrefFilePaths, string[] appendPdfFilePaths)
         {
-            for (int i = 0; i <= appendPdfFilePaths.Length; i++)
-            {
-                string xrefFilePath = xrefFilePaths[i];
-                string appendPdfPath = appendPdfFilePaths[i];
-                AppendToDocument(xrefFilePath, appendPdfPath);
-            }
+            numberOfTicks = CountFilesToUpdate(appendPdfFilePaths);
+            using (var progressBar = new ProgressBar(numberOfTicks, "Action 2 of 2 - Update and Append Pdf Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
+
+                for (int i = 0; i < appendPdfFilePaths.Length; i++)
+                {
+                    string xrefFilePath = xrefFilePaths[i];
+                    string appendPdfPath = appendPdfFilePaths[i];
+                    AppendToDocument(xrefFilePath, appendPdfPath);
+                    progressBar.Tick();
+                }
         }
 
         /// <summary>
-        /// Method - Appends Esignature pdf to the end of the affected pdf forms.
+        /// Method - Appends corresponding pdf to the end of the affected pdf docs.
         /// Note - Path must include the file name as well
         /// </summary>
         /// <param name="sourcePdfPath"></param>
@@ -122,14 +128,15 @@ namespace FormExportFixerTool
         internal void AppendToDocument(string sourcePdfPath, string appendPdfPath)
         {
             tempDirectory = String.Format("{0}_{1}", Path.GetPathRoot(_outputFolderPath), "_Temp");
-            // Temp storage for files while we create\append
+
+            // Temp storage for files while create\append
             if (!Directory.Exists(tempDirectory))
             {
                 Directory.CreateDirectory(tempDirectory);
             }
-
             string updatedFileName = Path.GetFileName(sourcePdfPath);
             string outputPdfPath = Path.Combine(tempDirectory, updatedFileName);
+
             try
             {
                 using (var sourceDocumentStream1 = new FileStream(sourcePdfPath, FileMode.Open))
@@ -175,11 +182,10 @@ namespace FormExportFixerTool
             {
                 WriteToLogFile(updatedFileName, outputPdfPath, e.ToString());
             }
-
         }
 
         /// <summary>
-        /// Write processed files information to log
+        /// Write processed file information to log
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="filePath"></param>
@@ -197,6 +203,16 @@ namespace FormExportFixerTool
             }
             line = String.Format("\n{0},{1},{2}", fileName, filePath, message);
             File.AppendAllText(logFilePath, line);
+        }
+
+        /// <summary>
+        /// Counts number of pdf files to be processed
+        /// </summary>
+        /// <param name="filesToBeAppended"></param>
+        /// <returns>int - number of files</returns>
+        private int CountFilesToUpdate(string[] filesToBeAppended)
+        {
+            return filesToBeAppended.Length;
         }
     }
 }
