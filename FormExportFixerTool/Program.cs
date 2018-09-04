@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 /*
  * 
- * Description: Tool will combine manifest files into one manifest file. 
+ * Description: Simple tool will combine manifest files into one manifest file. 
  * Tool will append a referenced pdf to the end of an another
  * Date Created: 06/12/2018
  * 
@@ -26,20 +27,20 @@ namespace FormExportFixerTool
                 Console.WriteLine("Enter parent folder path that contains the manifest files: ");
                 inputFolderPath = Console.ReadLine();
 
-                Console.WriteLine("\nEnter output path for the processed files to be copied to: ");
+                Console.WriteLine("\nEnter output path to the files to be processed: ");
                 outputFolderPath = Console.ReadLine();
 
                 Console.WriteLine("\nEnter path to xref file: ");
                 xrefFilePath = Console.ReadLine();
 
-                // Validate we have legit paths\file. Else be a jerk and make them enter it all again
+                // Validate we have legit paths\file. Else enter them again.
                 if (Directory.Exists(inputFolderPath) && Directory.Exists(outputFolderPath) && File.Exists(xrefFilePath))
                 {
                     break;
                 }
                 else
                 {
-                    Console.WriteLine("\nYou have entered an invalid folder andor file path. Please try again. \n");
+                    Console.WriteLine("\nYou have entered an invalid folder and or file path. Please try again. \n");
                     inputFolderPath = null;
                     outputFolderPath = null;
                     xrefFilePath = null;
@@ -60,20 +61,18 @@ namespace FormExportFixerTool
             Console.WriteLine("Complete - Combine manifest files\n");
 
             // Build the xref file paths & then append the cooresponding pages to the end
-            Console.WriteLine("Action - Process Pdf files...\n");
+            Console.WriteLine("Action - Processing files...\n");
             PdfFile pdf = new PdfFile(inputFolderPath, outputFolderPath, xrefFilePath);
+            Dictionary<string, string> filePathsToUpdate = pdf.ParseFilePaths(xrefFilePath);
 
-            string[] xrefPaths = pdf.BuildXrefFilePath(xrefFilePath);
-            string[] appendPaths = pdf.BuildAppendFilePath(xrefFilePath);
+            pdf.ParsePdfsAndAppend(filePathsToUpdate);
 
-            pdf.ParsePdfsAndAppend(xrefPaths, appendPaths);
-
-            Console.WriteLine("Complete - Updated Pdf files...");
+            Console.WriteLine("Complete - Updated files...");
 
             // Remove temp directory once processing is complete
             Directory.Delete(pdf.tempDirectory);
 
-            //Message processing is done and close the console window
+            //Message processing is complete and close the console window
             Console.WriteLine("Processing Complete! \nCheck FormExportLog.csv for details or if any issues were encountered during processing...");
 
             Console.WriteLine("\nPress any key to close this console window...");

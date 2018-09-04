@@ -74,7 +74,7 @@ namespace FormExportFixerTool
         }
 
         /// <summary>
-        /// Returns total count of a given file search pattern
+        /// Returns total file count of a given file search pattern
         /// </summary>
         /// <param name="searchPattern"></param>
         /// Example: int totalManifestFiles = GetNumberOfFiles(manifestFileName);

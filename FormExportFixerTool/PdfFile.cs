@@ -1,9 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using iTextSharp.text.pdf;
+﻿using iTextSharp.text.pdf;
 using Microsoft.VisualBasic.FileIO;
 using ShellProgressBar;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace FormExportFixerTool
 {
@@ -29,96 +29,77 @@ namespace FormExportFixerTool
         }
 
         /// <summary>
-        /// Method - Build the file paths for affected forms that need a pdf appended
+        /// Parses comma delimited file and stores source and append file paths
         /// </summary>
-        /// <returns></returns>
-        internal string[] BuildXrefFilePath(string xrefFilePath)
+        /// <param name="filePath"></param>
+        /// <returns>Dictionary of strings</returns>
+        internal Dictionary<string, string> ParseFilePaths(string filePath)
         {
             string userId;
             string lastName;
             string formName;
-            string line;
-            List<string> xrefFilePaths = new List<string>();
+            string sourceLinesPath;
+            string appendLinesPath;
+            bool firstLine = true;
+            string[] fields;
 
-            TextFieldParser xrefParser = new TextFieldParser(xrefFilePath);
+            Dictionary<string, string> appendFilePaths = new Dictionary<string, string>();
+
+            TextFieldParser xrefParser = new TextFieldParser(filePath);
             xrefParser.TextFieldType = FieldType.Delimited;
             xrefParser.SetDelimiters(",");
 
-            bool firstLine = true;
-
             while (!xrefParser.EndOfData)
             {
-                string[] fields = xrefParser.ReadFields();
-
-                // Skip the first line header
-                if (firstLine)
+                try
                 {
-                    firstLine = false;
-                    continue;
-                }
-                userId = fields[1];
-                lastName = fields[3];
-                formName = fields[9].Replace(" ", "");
+                    fields = xrefParser.ReadFields();
 
-                // Build xref file path for files needing Pdf appended
-                line = String.Format("{0}\\{1}_{2}\\{1}_{2}_{3}.pdf", _outputFolderPath, userId, lastName, formName);
-                xrefFilePaths.Add(line);
+                    // Skip first line header info
+                    if (firstLine)
+                    {
+                        firstLine = false;
+                        continue;
+                    }
+                    userId = fields[1];
+                    lastName = fields[3];
+                    formName = fields[9].Replace(" ", "");
+                    appendLinesPath = fields[11];
+                    sourceLinesPath = String.Format("{0}\\{1}_{2}\\{1}_{2}_{3}.pdf", _outputFolderPath, userId, lastName, formName);
+
+                    appendFilePaths.Add(appendLinesPath, sourceLinesPath);
+                }
+                catch (Exception parser)
+                {
+                    Console.WriteLine(String.Format("Error parsing file at line {0}.\n Error message:\n {1}", xrefParser.ErrorLineNumber, parser.ToString()));
+                }
             }
-            return xrefFilePaths.ToArray();
+            return appendFilePaths;
         }
 
         /// <summary>
-        /// Method - Store off paths for corresponding pdfs to be appended
-        /// </summary>
-        /// <param name="xrefFilePath"></param>
-        /// <returns></returns>
-        internal string[] BuildAppendFilePath(string xrefFilePath)
-        {
-            List<string> appendPdfFilePaths = new List<string>();
-
-            TextFieldParser xrefParser = new TextFieldParser(xrefFilePath);
-            xrefParser.TextFieldType = FieldType.Delimited;
-            xrefParser.SetDelimiters(",");
-
-            string line;
-            bool firstLine = true;
-
-            while (!xrefParser.EndOfData)
-            {
-                string[] fields = xrefParser.ReadFields();
-
-                // Skip first line header
-                if (firstLine)
-                {
-                    firstLine = false;
-                    continue;
-                }
-                line = fields[11];
-                appendPdfFilePaths.Add(line);
-            }
-            return appendPdfFilePaths.ToArray();
-        }
-
-        /// <summary>
-        /// Method - Call methods to parse out xref paths & append pdf paths, then call to append pdf method
+        /// Retrieves file paths of source and append files and calls method to process the files
         /// </summary>
         /// <param name="xrefFilePaths"></param>
         /// <param name="appendPdfFilePaths"></param>
-        internal void ParsePdfsAndAppend(string[] xrefFilePaths, string[] appendPdfFilePaths)
+        internal void ParsePdfsAndAppend(Dictionary<string, string> sourceAppendFilePaths)
         {
-            using (var progressBar = new ProgressBar(appendPdfFilePaths.Length, "Action 2 of 2 - Update and Append Pdf Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
+            string xrefFilePath;
+            string appendFilePath;
 
-                for (int i = 0; i < appendPdfFilePaths.Length; i++)
+            using (var progressBar = new ProgressBar(sourceAppendFilePaths.Count, "Action 2 of 2 - Update and Append Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
+
+                foreach (KeyValuePair<string, string> filePath in sourceAppendFilePaths)
                 {
-                    string xrefFilePath = xrefFilePaths[i];
-                    string appendPdfPath = appendPdfFilePaths[i];
-                    AppendToDocument(xrefFilePath, appendPdfPath);
+                    appendFilePath = filePath.Key;
+                    xrefFilePath = filePath.Value;
+                    AppendToDocument(xrefFilePath, appendFilePath);
                     progressBar.Tick();
                 }
         }
 
         /// <summary>
-        /// Method - Appends corresponding pdf to the end of the affected pdf docs.
+        /// Appends corresponding pdf to the end of the affected pdf docs.
         /// Note - Path must include the file name as well
         /// </summary>
         /// <param name="sourcePdfPath"></param>
@@ -178,7 +159,7 @@ namespace FormExportFixerTool
             }
             catch (Exception e)
             {
-                WriteToLogFile(updatedFileName, outputPdfPath, e.ToString());
+                WriteToLogFile(updatedFileName, sourcePdfPath, e.ToString());
             }
         }
 
