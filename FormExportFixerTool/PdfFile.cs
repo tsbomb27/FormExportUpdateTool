@@ -65,13 +65,13 @@ namespace FormExportFixerTool
                     lastName = fields[3];
                     formName = fields[9].Replace(" ", "");
                     appendLinesPath = fields[11];
-                    sourceLinesPath = String.Format("{0}\\{1}_{2}\\{1}_{2}_{3}.pdf", _outputFolderPath, userId, lastName, formName);
+                    sourceLinesPath = string.Format("{0}\\{1}_{2}\\{1}_{2}_{3}.pdf", _outputFolderPath, userId, lastName, formName);
 
                     appendFilePaths.Add(appendLinesPath, sourceLinesPath);
                 }
                 catch (Exception parser)
                 {
-                    Console.WriteLine(String.Format("Error parsing file at line {0}.\n Error message:\n {1}", xrefParser.ErrorLineNumber, parser.ToString()));
+                    Console.WriteLine(string.Format("Error parsing file at line {0}.\n Error message:\n {1}", xrefParser.ErrorLineNumber, parser.ToString()));
                 }
             }
             return appendFilePaths;
@@ -87,7 +87,7 @@ namespace FormExportFixerTool
             string xrefFilePath;
             string appendFilePath;
 
-            using (var progressBar = new ProgressBar(sourceAppendFilePaths.Count, "Action 2 of 2 - Update and Append Files...", new ProgressBarOptions { BackgroundColor = System.ConsoleColor.DarkGray }))
+            using (var progressBar = new ProgressBar(sourceAppendFilePaths.Count, "Action 2 of 2 - Update and Append Files...", new ProgressBarOptions { BackgroundColor = ConsoleColor.DarkGray }))
 
                 foreach (KeyValuePair<string, string> filePath in sourceAppendFilePaths)
                 {
@@ -106,7 +106,7 @@ namespace FormExportFixerTool
         /// <param name="appendPdfPath"></param>
         internal void AppendToDocument(string sourcePdfPath, string appendPdfPath)
         {
-            tempDirectory = String.Format("{0}_{1}", Path.GetPathRoot(_outputFolderPath), "_Temp");
+            tempDirectory = string.Format("{0}_{1}", Path.GetPathRoot(_outputFolderPath), "_Temp");
 
             // Temp storage for files while create\append
             if (!Directory.Exists(tempDirectory))
@@ -180,7 +180,7 @@ namespace FormExportFixerTool
                 string logFileHeader = "FileName,FilePath,Message";
                 File.WriteAllText(logFilePath, logFileHeader);
             }
-            line = String.Format("\n{0},{1},{2}", fileName, filePath, message);
+            line = string.Format("\n{0},{1},{2}", fileName, filePath, message);
             File.AppendAllText(logFilePath, line);
         }
 

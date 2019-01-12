@@ -39,7 +39,7 @@ namespace FormExportFixerTool
         /// </summary>
         /// <param name="writeOutputPath"></param>
         /// <param name="manifestFiles"></param>
-        internal void CombineManifestFiles(string writeOutputPath, string[] manifestFiles)
+        internal void CombineManifestFiles(string writeOutputPath, string[] manifestFiles, int chunkSize)
         {
             string filePath = Path.Combine(writeOutputPath, manifestFileName);
             int fileNumber = 0;
